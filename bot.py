@@ -3,6 +3,9 @@ import os
 import logging
 import subprocess
 import uuid
+import re
+import glob
+import shutil
 from RedDownloader import RedDownloader
 from helper import simple_embed
 from discord.ext import commands
@@ -74,6 +77,47 @@ async def reddit(ctx, url: str):
     await channel.send(file=file)
     await change_msg(ctx, "Done")
     os.remove(file_id)
+
+def extract_shortcode(url):
+    instagram_url_pattern = re.compile(r'(https?://www\.instagram\.com/(?:reel|p)/([^/?]+))')
+    match = instagram_url_pattern.match(url)
+    if match:
+        shortcode = match.group(2)
+        return shortcode
+    else:
+        return None
+    
+def find_media_files(directory):
+    media_files = []
+    extensions = ['.mp4', '.jpeg', '.mpeg', '.jpg', '.png', '.gif', '.webm', '.mp3', '.wav']
+    for extension in extensions:
+        files_with_extension = glob.glob(os.path.join(directory, f"*{extension}"))
+        if extension == '.mp4':
+            media_files.extend(files_with_extension)
+        else:
+            if any(file.endswith('.mp4') for file in files_with_extension):
+                media_files.extend(files_with_extension)
+    return media_files
+    
+@bot.tree.command(name="instagramm")
+async def instagramm(ctx, url: str):
+    await ctx.response.send_message(embed=simple_embed('Downloading ...'))
+    shortcode = extract_shortcode(url)
+    if shortcode == None:
+        await change_msg(ctx, "URL Invalid")
+        return
+
+    process = subprocess.Popen(f"instaloader -- -{shortcode}", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    process.wait()
+
+    await change_msg(ctx, "Sending ...")
+    files = find_media_files(f"./-{shortcode}")
+    for file_id in files:
+        file = discord.File(file_id)
+        channel = bot.get_channel(ctx.channel.id)
+        await channel.send(file=file)
+    await change_msg(ctx, "Done")
+    shutil.rmtree(f"-{shortcode}")
 
 
 @bot.tree.command(name="info")
