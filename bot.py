@@ -99,8 +99,8 @@ def find_media_files(directory):
                 media_files.extend(files_with_extension)
     return media_files
     
-@bot.tree.command(name="instagramm")
-async def instagramm(ctx, url: str):
+@bot.tree.command(name="instagram")
+async def instagram(ctx, url: str):
     await ctx.response.send_message(embed=simple_embed('Downloading ...'))
     shortcode = extract_shortcode(url)
     if shortcode == None:
