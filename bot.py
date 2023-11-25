@@ -3,6 +3,7 @@ import os
 import logging
 import subprocess
 import uuid
+from RedDownloader import RedDownloader
 from helper import simple_embed
 from discord.ext import commands
 from discord import app_commands
@@ -42,8 +43,8 @@ def download_with_args(args: str):
 async def change_msg(ctx, text: str):
     await ctx.edit_original_response(embed=simple_embed(text))
 
-@bot.tree.command(name="download_mp4")
-async def download_mp4(ctx, url: str):
+@bot.tree.command(name="youtube")
+async def youtube(ctx, url: str):
     await ctx.response.send_message(embed=simple_embed('Downloading ...'))
     file_id = download_with_args(f"-f 'best[ext=mp4]' {url}")
     await change_msg(ctx, "Sending ...")
@@ -52,6 +53,28 @@ async def download_mp4(ctx, url: str):
     await channel.send(file=file)
     await change_msg(ctx, "Done")
     os.remove(file_id)
+
+def datei_existiert(name):
+    erweiterungen = ['.mp4', '.jpeg', '.mpeg', '.jpg', '.png', '.gif', '.webm', '.mp3', '.wav']
+
+    for erweiterung in erweiterungen:
+        dateipfad = f"{name}{erweiterung}"
+        if os.path.exists(dateipfad):
+            return f"{name}{erweiterung}"  
+
+@bot.tree.command(name="reddit")
+async def reddit(ctx, url: str):
+    await ctx.response.send_message(embed=simple_embed('Downloading ...'))
+    id = str(uuid.uuid4())
+    RedDownloader.Download(url=url, output=id)
+    file_id = datei_existiert(id)
+    await change_msg(ctx, "Sending ...")
+    file = discord.File(file_id)
+    channel = bot.get_channel(ctx.channel.id)
+    await channel.send(file=file)
+    await change_msg(ctx, "Done")
+    os.remove(file_id)
+
 
 @bot.tree.command(name="info")
 async def info(ctx):
