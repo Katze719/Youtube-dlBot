@@ -12,4 +12,7 @@ RUN chmod +x /usr/local/bin/youtube-dl
 
 WORKDIR /app
 
+RUN set -eux; \
+    pip install -r ./requirements.txt;
+
 CMD ["python3", "./bot.py"]
