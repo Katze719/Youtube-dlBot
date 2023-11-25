@@ -1,0 +1,4 @@
+{
+    "name": "testing",
+    "image": "ghcr.io/katze719/youtube-dlbot:main"
+}
