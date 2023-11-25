@@ -9,4 +9,6 @@ COPY . /app
 
 RUN cp /app/youtube-dl/youtube-dl /usr/local/bin/youtube-dl
 
+WORKDIR /app
+
 CMD ["python3", "./bot.py"]
