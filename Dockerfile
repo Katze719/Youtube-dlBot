@@ -6,9 +6,10 @@ RUN set -eux; \
     mkdir /app;
 
 RUN set -eux; \
-    apt-get install -y youtube-dl; \
-    whereis youtube-dl;
+    apt-get install -y youtube-dl;
 
 COPY . /app
+
+RUN cp /app/youtube-dl/youtube-dl /usr/local/bin/youtube-dl
 
 CMD ["python3", "./bot.py"]
