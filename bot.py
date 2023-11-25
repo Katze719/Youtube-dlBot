@@ -1,6 +1,8 @@
 import discord
 import os
 import logging
+import subprocess
+import uuid
 from helper import simple_embed
 from discord.ext import commands
 from discord import app_commands
@@ -14,7 +16,7 @@ bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 @bot.event
 async def on_ready():
     logger.info("Bot is Online")
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name="getting DRUNK!!!"))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="Social Media"))
     try:
         synced = await bot.tree.sync()
         logger.info(f"Synced {len(synced)} command(s)")
@@ -31,20 +33,28 @@ async def ping(ctx):
     """
     await ctx.response.send_message(embed=simple_embed(f"Pong! {round(bot.latency * 1000)}ms"))
 
+def download_with_args(args: str):
+    id = str(uuid.uuid4()) + ".mp4"
+    process = subprocess.Popen(f"youtube-dl -o {id} {args}", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    process.wait()
+    return id
+
+async def change_msg(ctx, text: str):
+    await ctx.edit_original_response(embed=simple_embed(text))
+
+@bot.tree.command(name="download_mp4")
+async def download_mp4(ctx, url: str):
+    await ctx.response.send_message(embed=simple_embed('Downloading ...'))
+    file_id = download_with_args(f"-f 'best[ext=mp4]' {url}")
+    await change_msg(ctx, "Sending ...")
+    file = discord.File(file_id)
+    channel = bot.get_channel(ctx.channel.id)
+    await channel.send(file=file)
+    await change_msg(ctx, "Done")
+    os.remove(file_id)
 
 @bot.tree.command(name="info")
 async def info(ctx):
-    await ctx.response.send_message("https://github.com/Katze719/CaptainDrunk")
+    await ctx.response.send_message("https://github.com/Katze719/Youtube-dlBot")
 
 bot.run(str(os.getenv('Token')))
-
-
-
-
-import subprocess
-
-def download_from_yt(url: str):
-    process = subprocess.Popen(f"youtube-dl -f 'best[ext=mp4]' {url}", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    process.wait()
-
-download_from_yt("https://www.youtube.com/watch?v=yHgx0DyzFcE")
